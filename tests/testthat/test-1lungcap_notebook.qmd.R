@@ -1,6 +1,6 @@
 # Vérifications de lungcap_notebook.qmd
-lungcap <- parse_rmd("../../lungcap_notebook.qmd",
-  allow_incomplete = TRUE, parse_yaml = TRUE)
+lungcap <- try(parsermd::parse_qmd("../../lungcap_notebook.qmd"))
+expect_true(TRUE, info = lungcap)
 
 test_that("Le bloc-notes est-il compilé en un fichier final HTML ?", {
   expect_true(is_rendered("lungcap_notebook.qmd"))
@@ -32,20 +32,45 @@ test_that("La structure du document est-elle conservée ?", {
   # d'origine dans le dépôt "template" du document (lien au début du fichier
   # README.md).
 
-  expect_true(all(c("setup", "import", "importcomment", "table", "corr",
-    "fevht", "fevage", "desccomment", "fev_glm", "fev_glmcomment", "fev_glm2",
-    "fev_glm2comment", "fev_compa", "fev_compacomment", "fev_resid",
-    "fev_residcomment", "fev_lm", "fev_lmcomment", "smoke_glm",
-    "smoke_glmcomment", "smoke_glm2", "smoke_compa", "smoke_compacomment",
-    "smoke_glm3", "smoke_glm3comment")
-    %in% rmd_node_label(lungcap)))
+  expect_true(all(
+    c(
+      "setup",
+      "ai_comment",
+      "import",
+      "importcomment",
+      "table",
+      "corr",
+      "fevht",
+      "fevage",
+      "desccomment",
+      "fev_glm",
+      "fev_glmcomment",
+      "fev_glm2",
+      "fev_glm2comment",
+      "fev_compa",
+      "fev_compacomment",
+      "fev_resid",
+      "fev_residcomment",
+      "fev_lm",
+      "fev_lmcomment",
+      "smoke_glm",
+      "smoke_glmcomment",
+      "smoke_glm2",
+      "smoke_compa",
+      "smoke_compacomment",
+      "smoke_glm3",
+      "smoke_glm3comment",
+      "discussioncomment"
+    ) %in%
+      rmd_node_label(lungcap)
+  ))
   # Un ou plusieurs labels de chunks nécessaires à l'évaluation manquent
   # Ce test échoue si vous avez modifié la structure du document, un ou
   # plusieurs chunks indispensables par rapport aux exercices sont introuvables.
   # Vérifiez la structure du document par rapport à la version d'origine dans
   # le dépôt "template" du document (lien au début du fichier README.md).
 
-  expect_true(any(duplicated(rmd_node_label(lungcap))))
+  expect_false(any(duplicated(na.omit(rmd_node_label(lungcap)))))
   # Un ou plusieurs labels de chunks sont dupliqués
   # Les labels de chunks doivent absolument être uniques. Vous ne pouvez pas
   # avoir deux chunks qui portent le même label. Vérifiez et modifiez le label
@@ -55,20 +80,21 @@ test_that("La structure du document est-elle conservée ?", {
 })
 
 test_that("L'entête YAML a-t-il été complété ?", {
-  expect_true(lungcap[[1]]$author != "___")
-  expect_true(!grepl("__", lungcap[[1]]$author))
-  expect_true(grepl("^[^_]....+", lungcap[[1]]$author))
+  authors <- lungcap[[1]]@yaml[["author"]]
+  expect_true(authors != "___")
+  expect_true(!grepl("__", authors))
+  expect_true(grepl("^[^_]....+", authors))
   # Le nom d'auteur n'est pas complété ou de manière incorrecte dans l'entête
   # Vous devez indiquer votre nom dans l'entête YAML à la place de "___" et
   # éliminer les caractères '_' par la même occasion.
 
-  expect_true(grepl("[a-z]", lungcap[[1]]$author))
+  expect_true(grepl("[a-z]", authors))
   # Aucune lettre minuscule n'est trouvée dans le nom d'auteur
   # Avez-vous bien complété le champ 'author' dans l'entête YAML ?
   # Vous ne pouvez pas écrire votre nom tout en majuscules. Utilisez une
   # majuscule en début de nom et de prénom, et des minuscules ensuite.
 
-  expect_true(grepl("[A-Z]", lungcap[[1]]$author))
+  expect_true(grepl("[A-Z]", authors))
   # Aucune lettre majuscule n'est trouvée dans le nom d'auteur
   # Avez-vous bien complété le champ 'author' dans l'entête YAML ?
   # Vous ne pouvez pas écrire votre nom tout en minuscules. Utilisez une
@@ -101,7 +127,7 @@ test_that("Chunks 'import' & 'importcomment' : importation des données", {
   # cette aide plus tard dans le travail de groupe ou les interrogations !
 })
 
-test_that("Chunks 'table', 'corr', fevht', fevage' & 'desccomment' : description des données", {
+test_that("Chunks 'table', 'corr', 'fevht', 'fevage' & 'desccomment' : description des données", {
   expect_true(is_identical_to_ref("table"))
   # Le tableau de contingence produit par le chunk 'table' n'est pas celui
   # attendu
@@ -112,20 +138,20 @@ test_that("Chunks 'table', 'corr', fevht', fevage' & 'desccomment' : description
   expect_true(is_identical_to_ref("corr"))
   # Le graphique des corrélations produit par le chunk 'corr' n'est pas celui
   # attendu
-  # Lisez bien la consigne et corrigez l'erreur. Sélectionnez les cinq variables
+  # Lisez bien la consigne et corrigez l'erreur. Sélectionnez les trois variables
   # quantitatives dans l'ordre d'apparition dans le tableau.
 
-  expect_true(is_identical_to_ref("fevht"))
+  expect_true(is_equal_to_ref("fevht"))
   # Le graphique produit par le chunk 'fevht' n'est pas celui attendu
   # Lisez bien la consigne et corrigez l'erreur. Il vous faut un graphique en
   # nuage de points avec deux variables quantitatives, une variation de couleur
-  # par 'année'Smoke' et des facettes pour la variable 'Gender'.
+  # par 'Smoke' et des facettes pour la variable 'Gender'.
 
-  expect_true(is_identical_to_ref("fevage"))
+  expect_true(is_equal_to_ref("fevage"))
   # Le graphique produit par le chunk 'fevage' n'est pas celui attendu
   # Lisez bien la consigne et corrigez l'erreur. Il vous faut un graphique en
   # nuage de points avec deux variables quantitatives, une variation de couleur
-  # par 'année'Smoke' et des facettes pour la variable 'Gender'.
+  # par 'Smoke' et des facettes pour la variable 'Gender'.
 
   expect_true(is_identical_to_ref("desccomment"))
   # L'interprétation de la description des données est (partiellement) fausse
@@ -139,7 +165,7 @@ test_that("Chunks 'table', 'corr', fevht', fevage' & 'desccomment' : description
 })
 
 test_that("Chunks 'fev_glm', 'fev_glmcomment', premier modèle linéaire généralisé pour FEV", {
-  expect_true(is_identical_to_ref("fev_glm"))
+  expect_true(is_equal_to_ref("fev_glm"))
   # Le premier modèle linéaire généralisé pour FEV (chunk 'fev_glm') n'est pas
   # le bon
   # Vérifiez en particulier la formule que vous avez écrite pour décrire la
@@ -156,9 +182,9 @@ test_that("Chunks 'fev_glm', 'fev_glmcomment', premier modèle linéaire génér
   # cette aide plus tard dans le travail de groupe ou les interrogations !
 })
 
-test_that("Chunks 'fev_glm2', 'fev_glm2comment', premier modèle linéaire généralisé pour FEV", {
-  expect_true(is_identical_to_ref("fev_glm2"))
-  # Le second modèle linéaire généralisé pour FEV (chunk 'fev_glm') n'est pas
+test_that("Chunks 'fev_glm2', 'fev_glm2comment', second modèle linéaire généralisé pour FEV", {
+  expect_true(is_equal_to_ref("fev_glm2"))
+  # Le second modèle linéaire généralisé pour FEV (chunk 'fev_glm2') n'est pas
   # le bon
   # Vérifiez en particulier la formule que vous avez écrite pour décrire la
   # relation entre les variables dans votre modèle. Relisez les consignes
@@ -177,7 +203,7 @@ test_that("Chunks 'fev_glm2', 'fev_glm2comment', premier modèle linéaire gén�
 test_that("Chunks 'fev_compa', 'fev_compacomment', comparaison des deux premiers modèles généralisés pour FEV", {
   expect_true(is_identical_to_ref("fev_compa"))
   # La comparaison des deux premiers modèles généralisés pour FEV (chunk
-  # 'compa') n'est pas correcte
+  # 'fev_compa') n'est pas correcte
   # Vérifiez votre code et indiquez les modèles dans l'ordre comme arguments.
   # Vous devez aussi préciser que vous voulez un test "F".
 
@@ -192,8 +218,8 @@ test_that("Chunks 'fev_compa', 'fev_compacomment', comparaison des deux premiers
 })
 
 test_that("Chunks 'fev_resid' & 'fev_residcomment' : graphiques d'analyse des résidus pour le modèle FEV", {
-  expect_true(is_identical_to_ref("fev_resid"))
-  # Les graphiques d'analyse des résidus du modèle FEV ne sont pas réalisé ou
+  expect_true(is_equal_to_ref("fev_resid"))
+  # Les graphiques d'analyse des résidus du modèle FEV ne sont pas réalisés ou
   # sont incorrects
   # Relisez les consignes et vérifiez votre code concernant ce graphique.
 
@@ -218,7 +244,7 @@ test_that("Le code pour l'équation paramétrée du modèle FEV est-il correct ?
 })
 
 test_that("Chunks 'fev_lm', 'fev_lmcomment', modèle linéaire pour FEV", {
-  expect_true(is_identical_to_ref("fev_lm"))
+  expect_true(is_equal_to_ref("fev_lm"))
   # Le modèle linéaire pour FEV (chunk 'fev_lm') n'est pas le bon
   # Vérifiez en particulier la formule que vous avez écrite pour décrire la
   # relation entre les variables dans votre modèle. Relisez les consignes
@@ -235,7 +261,7 @@ test_that("Chunks 'fev_lm', 'fev_lmcomment', modèle linéaire pour FEV", {
 })
 
 test_that("Chunks 'smoke_glm', 'smoke_glmcomment', premier modèle linéaire généralisé pour Smoke", {
-  expect_true(is_identical_to_ref("smoke_glm"))
+  expect_true(is_equal_to_ref("smoke_glm"))
   # Le premier modèle linéaire généralisé pour Smoke (chunk 'smoke_glm') n'est
   # pas le bon
   # Vérifiez en particulier la formule que vous avez écrite pour décrire la
@@ -253,8 +279,8 @@ test_that("Chunks 'smoke_glm', 'smoke_glmcomment', premier modèle linéaire gé
 })
 
 test_that("Chunks 'smoke_glm2', 'smoke_compa', 'smoke_compacomment', second modèle linéaire généralisé pour Smoke et comparaison", {
-  expect_true(is_identical_to_ref("smoke_glm2"))
-  # Le second modèle linéaire généralisé pour Smoke (chunk 'smoke_glm') n'est
+  expect_true(is_equal_to_ref("smoke_glm2"))
+  # Le second modèle linéaire généralisé pour Smoke (chunk 'smoke_glm2') n'est
   # pas le bon
   # Vérifiez en particulier la formule que vous avez écrite pour décrire la
   # relation entre les variables dans votre modèle. Relisez les consignes
@@ -277,7 +303,7 @@ test_that("Chunks 'smoke_glm2', 'smoke_compa', 'smoke_compacomment', second mod�
 })
 
 test_that("Chunks 'smoke_glm3', 'smoke_glm3comment', troisième modèle linéaire généralisé pour Smoke", {
-  expect_true(is_identical_to_ref("smoke_glm3"))
+  expect_true(is_equal_to_ref("smoke_glm3"))
   # Le troisième modèle linéaire généralisé pour Smoke (chunk 'smoke_glm3')
   # n'est pas le bon
   # Vérifiez en particulier la formule que vous avez écrite pour décrire la
@@ -287,7 +313,7 @@ test_that("Chunks 'smoke_glm3', 'smoke_glm3comment', troisième modèle linéair
   expect_true(is_identical_to_ref("smoke_glm3comment"))
   # L'interprétation du troisième modèle linéaire généralisé pour Smoke est
   # (partiellement) fausse
-  # Vous devez cochez les phrases qui décrivent le modèle d'un 'x' entre les
+  # Vous devez cocher les phrases qui décrivent le modèle d'un 'x' entre les
   # crochets [] -> [x]. Ensuite, vous devez recompiler la version HTML du
   # bloc-notes (bouton 'Rendu') sans erreur pour réactualiser les résultats.
   # Assurez-vous de bien comprendre ce qui est coché ou pas : vous n'aurez plus
@@ -305,12 +331,12 @@ test_that("Le code pour l'équation paramétrée du modèle Smoke est-il correct
   # généré avec le bouton ('Rendu').
 })
 
-test_that("La partie discussion et conclusion est-elle remplie ?", {
-  expect_true(!(rmd_select(lungcap, by_section("Discussion et conclusion")) |>
-      as_document() |> grepl("...Votre discussion à la place de ce texte...",
-        x = _, fixed = TRUE) |> any()))
-  # La discussion et la conclusion ne sont pas faites
-  # Remplacez "...Votre discussion à la place de ce texte..." par vos phrases de
-  # commentaires libres (à noter que le contenu de cette section n'est pas
-  # évalué automatiquement, mais il le sera par vos enseignants).
+test_that("Chunk 'discussioncomment', discussion et conclusion", {
+  expect_true(is_identical_to_ref("discussioncomment"))
+  # La discussion et la conclusion sont (partiellement) fausses
+  # Vous devez cocher les phrases qui correspondent à vos conclusions d'un 'x'
+  # entre les crochets [] -> [x]. Ensuite, vous devez recompiler la version HTML
+  # du bloc-notes (bouton 'Rendu') sans erreur pour réactualiser les résultats.
+  # Assurez-vous de bien comprendre ce qui est coché ou pas : vous n'aurez plus
+  # cette aide plus tard dans le travail de groupe ou les interrogations !
 })

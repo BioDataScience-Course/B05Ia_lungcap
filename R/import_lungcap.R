@@ -4,7 +4,7 @@
 #   https://rdrr.io/cran/GLMsData/man/lungcap.html
 # données :
 #   Les données proviennent du package {GLMsData} installé par défaut dans la
-#   SciViews Box 2024. Cependant, l'importation ayant déjà été réalisée pour
+#   SciViews Box 2026. Cependant, l'importation ayant déjà été réalisée pour
 #   vous, vous ne devez pas exécuter ce script et vous n'avez rien à faire pour
 #   avoir accès aux données remaniées qui sont dans le fichier
 #   `data/lungcap.rds`.
